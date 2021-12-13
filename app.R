@@ -1,6 +1,7 @@
 # load libraries
 library(shiny)
 library(shinydashboard)
+library(readr)
 library(dplyr)
 library(plotly)
 
@@ -44,7 +45,14 @@ ui <- dashboardPage(
           valueBoxOutput("fully_vaccinated"),
           valueBoxOutput("at_least_one"),
           valueBoxOutput("doses_administered")
-          
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            title = "Daily vaccine doses administered",
+            status = "primary",
+            plotlyOutput("daily_doses")
+          )
         )
       ),
       tabItem(
@@ -60,7 +68,12 @@ server <- function(input, output, session) {
   
   # data from our world in data github repo
   data_source <- reactive({
+    
     sa_data <- read_csv(owid_url)
+    
+    # calculate daily vaccine doses
+    sa_data <- sa_data %>% 
+      mutate(daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations)))
   })
   
   # Total Fully vaccinated
@@ -109,6 +122,12 @@ server <- function(input, output, session) {
       subtitle = "Doses administered",
       icon = icon("syringe")
     )
+  })
+  
+  # daily doses plotly graph
+  output$daily_doses <- renderPlotly({
+    plot_ly(data_source(), x = ~date, y = ~daily_vaccine_doses) %>% 
+      add_bars()
   })
   
 }
