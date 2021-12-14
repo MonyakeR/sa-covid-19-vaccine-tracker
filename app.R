@@ -40,7 +40,6 @@ ui <- dashboardPage(
     tabItems(
       tabItem(
         tabName = "overview",
-        #h3("Vaccination progress"),
         fluidRow(
           valueBoxOutput("fully_vaccinated"),
           valueBoxOutput("at_least_one"),
@@ -50,8 +49,16 @@ ui <- dashboardPage(
           box(
             width = 12,
             title = "Daily vaccine doses administered",
-            status = "primary",
+            #status = "primary",
             plotlyOutput("daily_doses")
+          )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            title = "Cumulative vaccinations",
+            #status = "primary",
+            plotlyOutput("cumulative_vaccinations")
           )
         )
       ),
@@ -73,7 +80,9 @@ server <- function(input, output, session) {
     
     # calculate daily vaccine doses
     sa_data <- sa_data %>% 
-      mutate(daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations)))
+      mutate(
+        daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations))
+      )
   })
   
   # Total Fully vaccinated
@@ -127,9 +136,55 @@ server <- function(input, output, session) {
   # daily doses plotly graph
   output$daily_doses <- renderPlotly({
     plot_ly(data_source(), x = ~date, y = ~daily_vaccine_doses) %>% 
-      add_bars()
+      add_bars(
+        marker = list(color = "#3392c5")
+      ) %>% 
+      layout(
+        xaxis= list(title = ""),
+        yaxis = list(title = "")
+      ) %>% 
+      config(displayModeBar = FALSE)
   })
   
+  # cummulative vaccination plotly graph
+  output$cumulative_vaccinations <- renderPlotly({
+    plot_ly(
+      data_source(), x = ~date, y = ~people_vaccinated,
+      type="scatter",
+      mode="lines",
+      fill = "tozeroy",
+      fillcolor = "#9dcce5",
+      line = list(
+        color = "#3392c5"
+      ),
+      name = "Received at least one dose"
+    ) %>% 
+      add_trace(
+        x = ~date,
+        y = ~people_fully_vaccinated,
+        type="scatter",
+        mode="lines",
+        fill = "tozeroy",
+        fillcolor = "#3392c5",
+        line = list(
+          color = "#9dcce5"
+        ),
+        name = "Fully vaccinated"
+      ) %>% 
+      layout(
+        legend = list(
+          orientation = "h",
+          yanchor = "bottom",
+          y = 1.02,
+          xanchor = "right",
+          x = 1
+        ),
+        xaxis= list(title = ""),
+        yaxis = list(title = "")
+      ) %>% 
+      config(displayModeBar = FALSE)
+      
+  })
 }
 
 # run app

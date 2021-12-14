@@ -28,7 +28,9 @@ at_least_one_dose <- sa_data %>%
 
 # get daily vaccination numbers
 sa_data <- sa_data %>% 
-  mutate(daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations)))
+  mutate(
+    daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations))
+  )
 
 # create plot for daily doses
 bar_plot <- ggplot(sa_data, aes(date, daily_vaccine_doses)) + 
