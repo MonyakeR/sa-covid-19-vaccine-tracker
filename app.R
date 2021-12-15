@@ -37,6 +37,11 @@ ui <- dashboardPage(
     )
   ),
   dashboardBody(
+    
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+    ),
+    
     tabItems(
       tabItem(
         tabName = "overview",
@@ -50,6 +55,16 @@ ui <- dashboardPage(
             width = 12,
             title = "Daily vaccine doses administered",
             #status = "primary",
+            selectInput(
+              "daily_timeframe",
+              label = "",
+              choices = c(
+                "All time" = as.Date("2021-02-16"),
+                "Last 60 days" = Sys.Date() - 60,
+                "Last 30 days" = Sys.Date() - 30
+              ),
+              selected = "All time"
+            ),
             plotlyOutput("daily_doses")
           )
         ),
@@ -58,6 +73,16 @@ ui <- dashboardPage(
             width = 12,
             title = "Cumulative vaccinations",
             #status = "primary",
+            selectInput(
+              "cumulative_timeframe",
+              label = "",
+              choices = c(
+                "All time" = as.Date("2021-02-16"),
+                "Last 60 days" = Sys.Date() - 60,
+                "Last 30 days" = Sys.Date() - 30
+              ),
+              selected = "All time"
+            ),
             plotlyOutput("cumulative_vaccinations")
           )
         )
@@ -135,7 +160,10 @@ server <- function(input, output, session) {
   
   # daily doses plotly graph
   output$daily_doses <- renderPlotly({
-    plot_ly(data_source(), x = ~date, y = ~daily_vaccine_doses) %>% 
+    
+    data_source() %>% 
+      filter(date >= input$daily_timeframe) %>% 
+      plot_ly(x = ~date, y = ~daily_vaccine_doses) %>% 
       add_bars(
         marker = list(color = "#3392c5")
       ) %>% 
@@ -148,17 +176,20 @@ server <- function(input, output, session) {
   
   # cummulative vaccination plotly graph
   output$cumulative_vaccinations <- renderPlotly({
-    plot_ly(
-      data_source(), x = ~date, y = ~people_vaccinated,
-      type="scatter",
-      mode="lines",
-      fill = "tozeroy",
-      fillcolor = "#9dcce5",
-      line = list(
-        color = "#3392c5"
-      ),
-      name = "Received at least one dose"
-    ) %>% 
+    
+    data_source() %>% 
+      filter(date >= input$cumulative_timeframe) %>% 
+      plot_ly(
+        x = ~date, y = ~people_vaccinated,
+        type="scatter",
+        mode="lines",
+        fill = "tozeroy",
+        fillcolor = "#9dcce5",
+        line = list(
+          color = "#3392c5"
+        ),
+        name = "Received at least one dose"
+      ) %>% 
       add_trace(
         x = ~date,
         y = ~people_fully_vaccinated,
@@ -183,7 +214,6 @@ server <- function(input, output, session) {
         yaxis = list(title = "")
       ) %>% 
       config(displayModeBar = FALSE)
-      
   })
 }
 

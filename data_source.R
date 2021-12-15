@@ -41,4 +41,8 @@ ggplotly(bar_plot)
 # plotly
 plot_ly(sa_data, x = ~date, y = ~daily_vaccine_doses) %>% 
   add_bars()
+
+# data for last 60 days
+
+# data for last 30 days
   
