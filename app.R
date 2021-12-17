@@ -169,7 +169,8 @@ server <- function(input, output, session) {
       ) %>% 
       layout(
         xaxis= list(title = ""),
-        yaxis = list(title = "")
+        yaxis = list(title = ""),
+        hovermode = "x unified"
       ) %>% 
       config(displayModeBar = FALSE)
   })
@@ -211,7 +212,9 @@ server <- function(input, output, session) {
           x = 1
         ),
         xaxis= list(title = ""),
-        yaxis = list(title = "")
+        yaxis = list(title = ""),
+        hovermode = "x unified",
+        hoverlabel = list(namelength = -1)
       ) %>% 
       config(displayModeBar = FALSE)
   })
