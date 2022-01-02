@@ -8,9 +8,14 @@ library(plotly)
 # our world in data github source for south africa
 owid_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/country_data/South%20Africa.csv"
 
+# metrics data url
+metrics_url <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpXRXO5wpKifBgB-OjRO9YLninQte0NMI23qNBYwjR5vBB9yVyXAiZM_m7liamryGXkc0lWYHN7Xlz/pub?output=csv"
+
+# provinces data url
+provinces_url <- ""
+
 # Population estimates. Source: http://www.statssa.gov.za/?p=13453,
 # https://sacoronavirus.co.za/latest-vaccine-statistics
-sa_total_pop <- 59.62 * 1000000
 sa_adult_pop <- 39798201
 
 # ui
@@ -98,6 +103,13 @@ ui <- dashboardPage(
 # server
 server <- function(input, output, session) {
   
+  # score cards data stored in google sheets
+  score_cards <- reactive({
+    
+    metrics_df <- read_csv(metrics_url)
+    
+  })
+  
   # data from our world in data github repo
   data_source <- reactive({
     
@@ -112,12 +124,12 @@ server <- function(input, output, session) {
   
   # Total Fully vaccinated
   output$fully_vaccinated <- renderValueBox({
-    fully_vaccinated <- data_source() %>% 
-      dplyr::filter(date == max(date)) %>%
-      dplyr::select(people_fully_vaccinated) %>% 
+    fully_vaccinated <- score_cards() %>% 
+      dplyr::filter(date == max(date) & metric == "fully_vaccinated") %>%
+      dplyr::select(value) %>% 
       dplyr::pull()
     
-    value <- round((fully_vaccinated / sa_total_pop), 3)
+    value <- round((fully_vaccinated / sa_adult_pop), 3)
     
     valueBox(
       value = paste0(value * 100,"%"),
@@ -129,12 +141,12 @@ server <- function(input, output, session) {
   
   # Received at least one dose
   output$at_least_one <- renderValueBox({
-    at_least_one_dose <- data_source() %>% 
-      dplyr::filter(date == max(date)) %>%
-      dplyr::select(people_vaccinated) %>% 
+    at_least_one_dose <- score_cards() %>% 
+      dplyr::filter(date == max(date) & metric == "one_plus") %>%
+      dplyr::select(value) %>% 
       dplyr::pull()
     
-    value <- round((at_least_one_dose / sa_total_pop), 3)
+    value <- round((at_least_one_dose / sa_adult_pop), 3)
     
     valueBox(
       value = paste0(value * 100, "%"),
@@ -146,9 +158,9 @@ server <- function(input, output, session) {
 
   # Total Doses administered
   output$doses_administered <- renderValueBox({
-    doses_administered <- data_source() %>% 
-      dplyr::filter(date == max(date)) %>%
-      dplyr::select(total_vaccinations) %>% 
+    doses_administered <- score_cards() %>% 
+      dplyr::filter(date == max(date) & metric == "total_vaccinations") %>%
+      dplyr::select(value) %>% 
       dplyr::pull()
     
     valueBox(
