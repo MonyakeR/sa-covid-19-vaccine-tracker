@@ -3,7 +3,9 @@ library(shiny)
 library(shinydashboard)
 library(readr)
 library(dplyr)
+library(lubridate)
 library(plotly)
+library(shinyjs)
 
 # our world in data github source for south africa
 owid_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/country_data/South%20Africa.csv"
@@ -17,6 +19,13 @@ provinces_url <- ""
 # Population estimates. Source: http://www.statssa.gov.za/?p=13453,
 # https://sacoronavirus.co.za/latest-vaccine-statistics
 sa_adult_pop <- 39798201
+
+# get the last updated date
+metrics_df <- read_csv(metrics_url)
+last_updated <- mdy(max(metrics_df$date))
+last_updated_day <- day(last_updated)
+last_updated_month <- month(last_updated, label = TRUE)
+last_updated_year <- year(last_updated)
 
 # ui
 
@@ -38,13 +47,24 @@ ui <- dashboardPage(
         "Provincial",
         tabName = "provincial",
         icon = icon("map-marked")
+      ),
+      menuItem(
+        "Info",
+        tabName = "info",
+        icon = icon("info-circle")
       )
     )
   ),
   dashboardBody(
     
     tags$head(
-      tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
+      tags$link(rel = "stylesheet", type = "text/css", href = "style.css"),
+      tags$script(HTML('
+      $(document).ready(function() {
+        $("header").find("nav").append(\'<span id = "pageHeader" class="last-updated"></span>\');
+      })
+     ')),
+      useShinyjs()
     ),
     
     tabItems(
@@ -95,6 +115,10 @@ ui <- dashboardPage(
       tabItem(
         tabName = "provincial",
         h2("Provincial breakdown")
+      ),
+      tabItem(
+        tabName = "info",
+        h2("Some info about the vaccine and the data sources")
       )
     )
   )
@@ -102,6 +126,18 @@ ui <- dashboardPage(
 
 # server
 server <- function(input, output, session) {
+  
+  # last updated text on header
+  shinyjs::html(
+    "pageHeader", paste(
+      "As of:",
+      last_updated_day,
+      last_updated_month,
+      last_updated_year,
+      ",",
+      "17:00"
+    )
+  )
   
   # score cards data stored in google sheets
   score_cards <- reactive({
