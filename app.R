@@ -6,6 +6,8 @@ library(dplyr)
 library(lubridate)
 library(plotly)
 library(shinyjs)
+library(reactable)
+library(htmltools)
 
 # our world in data github source for south africa
 owid_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/data/vaccinations/country_data/South%20Africa.csv"
@@ -14,11 +16,21 @@ owid_url <- "https://raw.githubusercontent.com/owid/covid-19-data/master/public/
 metrics_url <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpXRXO5wpKifBgB-OjRO9YLninQte0NMI23qNBYwjR5vBB9yVyXAiZM_m7liamryGXkc0lWYHN7Xlz/pub?output=csv"
 
 # provinces data url
-provinces_url <- ""
+provinces_url <- "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3i-s3GITMfP1GSnU4xEax6fvKeI88Qgfu2PNgHopMrqcPEbTAJftCmrX5en11VjgAvPY4WtY-elfl/pub?output=csv"
 
 # Population estimates. Source: http://www.statssa.gov.za/?p=13453,
 # https://sacoronavirus.co.za/latest-vaccine-statistics
 sa_adult_pop <- 39798201
+
+# Render a bar chart with a label on the left
+bar_chart <- function(label, width = "100%", height = "16px", fill = "#00bfc4", background = NULL) {
+  bar <- div(style = list(background = fill, width = width, height = height))
+  chart <- div(style = list(flexGrow = 1, marginLeft = "8px", background = background), bar)
+  div(style = list(display = "flex", alignItems = "center"), label, chart)
+}
+
+# colour palette 
+pal <- function(x) rgb(colorRamp(c("#FFFFFF", "#3392c5"))(x), maxColorValue = 255)
 
 # get the last updated date
 metrics_df <- read_csv(metrics_url)
@@ -42,11 +54,6 @@ ui <- dashboardPage(
         "Overview",
         tabName = "overview",
         icon = icon("dashboard")
-      ),
-      menuItem(
-        "Provincial",
-        tabName = "provincial",
-        icon = icon("map-marked")
       ),
       menuItem(
         "Info",
@@ -110,11 +117,14 @@ ui <- dashboardPage(
             ),
             plotlyOutput("cumulative_vaccinations")
           )
+        ),
+        fluidRow(
+          box(
+            width = 12,
+            title = NULL,
+            reactableOutput("table")
+          )
         )
-      ),
-      tabItem(
-        tabName = "provincial",
-        h2("Provincial breakdown")
       ),
       tabItem(
         tabName = "info",
@@ -156,6 +166,11 @@ server <- function(input, output, session) {
       mutate(
         daily_vaccine_doses = c(total_vaccinations[1], diff(total_vaccinations))
       )
+  })
+  
+  # table summary data from google sheets
+  provincial_data <- reactive({
+    provinces <- read_csv(provinces_url)
   })
   
   # Total Fully vaccinated
@@ -265,6 +280,74 @@ server <- function(input, output, session) {
         hoverlabel = list(namelength = -1)
       ) %>% 
       config(displayModeBar = FALSE)
+  })
+  
+  # provincial summary table
+  output$table <- renderReactable({
+    reactable(
+      provincial_data(),
+      defaultSorted = "percentage_fully_vaccinated",
+      defaultColDef = colDef(headerClass = "header", align = "left"),
+      columns = list(
+        province = colDef(
+          name = "Province"
+        ),
+        # total_adult_population = colDef(
+        #   name = "Total adult pupolation",
+        #   cell = function(value) {
+        #     width <- paste0(value * 100 / max(provincial_data()$total_adult_population), "%")
+        #     value <- format(value, big.mark = ",")
+        #     value <- format(value, width = 10, justify = "right")
+        #     bar <- div(
+        #       class = "bar-chart",
+        #       style = list(marginRight = "6px"),
+        #       div(class = "bar", style = list(width = width, backgroundColor = "#3fc1c9"))
+        #     )
+        #     div(class = "bar-cell", span(class = "number", value), bar)
+        #   }
+        # ),
+        total_adult_population = colDef(
+          name = "Total adult pupolation",
+          cell = function(value) {
+            value <- format(value, big.mark = ",")
+          },
+          style = function(value) {
+            normalized <- (value - min(provincial_data()$total_adult_population)) / (max(provincial_data()$total_adult_population) - min(provincial_data()$total_adult_population))
+            color <- pal(normalized)
+            list(background = color)
+          }
+        ),
+        total_vaccinated = colDef(
+          name = "Received at least one dose",
+          cell = function(value) {
+            value <- format(value, big.mark = ",")
+          }
+        ),
+        total_fully_vaccinated = colDef(
+          name = "Fully vaccinated",
+          cell = function(value) {
+            value <- format(value, big.mark = ",")
+          }
+        ),
+        percentage_vaccinated = colDef(
+          name = "Percentage vaccinated",
+          align = "left",
+          cell = function(value) {
+            width <- paste0(value)
+            bar_chart(value, width = width, fill = "#9dcce5", background = "#e1e1e1")
+          }
+        ),
+        percentage_fully_vaccinated = colDef(
+          defaultSortOrder = "desc",
+          name = "Percentage fully vaccinated",
+          align = "left",
+          cell = function(value) {
+            width <- paste0(value)
+            bar_chart(value, width = width, fill = "#3392c5", background = "#e1e1e1")
+          }
+        )
+      )
+    )
   })
 }
 
