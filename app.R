@@ -84,7 +84,7 @@ ui <- dashboardPage(
         ),
         fluidRow(
           box(
-            width = 12,
+            width = 6,
             title = "Daily vaccine doses administered",
             #status = "primary",
             selectInput(
@@ -98,11 +98,9 @@ ui <- dashboardPage(
               selected = "All time"
             ),
             plotlyOutput("daily_doses")
-          )
-        ),
-        fluidRow(
+          ),
           box(
-            width = 12,
+            width = 6,
             title = "Cumulative vaccinations",
             #status = "primary",
             selectInput(
@@ -128,7 +126,44 @@ ui <- dashboardPage(
       ),
       tabItem(
         tabName = "info",
-        h2("Some info about the vaccine and the data sources")
+        box(
+          width = 12,
+          title = "Disclaimer, definitions and data sources",
+          HTML(
+            "<p>The vaccination dashboard shows the vaccination rates as reported by the health department.
+            Every day the health department posts the latest information from its <a href = 'https://sacoronavirus.co.za/latest-vaccine-statistics'>vaccine statistics dashboard</a> on its SA Coronavirus website.
+            At present, the numbers shown on the dashboard are a snapshot as at 17:00 on a particular day.
+            Data in the two graphs, Daily vaccine doses administered and Cumulative vaccinations comes from 
+            <a href = 'https://github.com/owid/covid-19-data/blob/master/public/data/vaccinations/country_data/South%20Africa.csv'>Our World in Data.</a></p>" 
+          ),
+          HTML(
+            "
+            <p>People 18 years and older are the target population of the vaccination roll-out.
+            The estimated number of people in this age group used in the table was obtained from Statistics South Africa.
+            South Africa is currently using two vaccines, the one-dose Johnson & Johnson (J&J) shot and the two-dose Pfizer.
+            People who receive a J&J shot are fully vaccinated, but people need to receive two doses of Pfizer to be fully vaccinated.
+            The health department vaccination dashboard has a disclaimer that states:
+            “Data displayed in this dashboard only contains vaccination records captured on the live Electronic Vaccination Data System (EVDS) and excludes vaccination records captured on paper within the last 24 hours.
+            Totals will be adjusted as back-capturing and data validation are done.”
+            </p>"
+          ),
+          h4("Definitions"),
+          HTML(
+            "
+            <dl>
+              <dt>Adults</dt>
+              <dd>- People 18 years and older. <b>Source</b>: Statssa Mid-Year population estimates 2020
+              </dd>
+              <dt>Individuals Vaccinated</dt>
+              <dd>- One dose J&J (single dose regimen) or Pfizer (two dose regimen) first dose administered
+              </dd>
+              <dt>Fully Vaccinated</dt>
+              <dd>- Total Number of Individuals that have received a Johnson & Johnson Vaccine or Pfizer 1st dose & 2nd dose.
+              </dd>
+            </dl>
+            "
+          )
+        )
       )
     )
   )
@@ -330,7 +365,7 @@ server <- function(input, output, session) {
           }
         ),
         percentage_vaccinated = colDef(
-          name = "Percentage vaccinated",
+          name = "% of adults vaccinated",
           align = "left",
           cell = function(value) {
             width <- paste0(value)
@@ -339,7 +374,7 @@ server <- function(input, output, session) {
         ),
         percentage_fully_vaccinated = colDef(
           defaultSortOrder = "desc",
-          name = "Percentage fully vaccinated",
+          name = "% of adults fully vaccinated",
           align = "left",
           cell = function(value) {
             width <- paste0(value)
