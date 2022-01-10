@@ -34,7 +34,8 @@ pal <- function(x) rgb(colorRamp(c("#FFFFFF", "#3392c5"))(x), maxColorValue = 25
 
 # get the last updated date
 metrics_df <- read_csv(metrics_url)
-last_updated <- mdy(max(metrics_df$date))
+metrics_df$date <- as.Date(metrics_df$date, "%m/%d/%Y")
+last_updated <- max(metrics_df$date)
 last_updated_day <- day(last_updated)
 last_updated_month <- month(last_updated, label = TRUE)
 last_updated_year <- year(last_updated)

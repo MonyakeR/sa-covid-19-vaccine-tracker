@@ -1,0 +1,13 @@
+name: sa-covid-19-vaccine-tracker
+title: sa-covid-19-vaccine-tracker
+username:
+account: monyake
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5396546
+bundleId: 5453381
+url: https://monyake.shinyapps.io/sa-covid-19-vaccine-tracker/
+when: 1641845350.49906
+lastSyncTime: 1641845350.49907
+asMultiple: FALSE
+asStatic: FALSE
