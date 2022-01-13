@@ -189,6 +189,9 @@ server <- function(input, output, session) {
   score_cards <- reactive({
     
     metrics_df <- read_csv(metrics_url)
+    metrics_df$date <- as.Date(metrics_df$date, "%m/%d/%Y")
+    
+    metrics_df
     
   })
   
