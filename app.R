@@ -209,7 +209,8 @@ server <- function(input, output, session) {
   
   # table summary data from google sheets
   provincial_data <- reactive({
-    provinces <- read_csv(provinces_url)
+    provinces <- read_csv(provinces_url) %>%
+      na.omit()
   })
   
   # Total Fully vaccinated

@@ -5,9 +5,9 @@ account: monyake
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5396546
-bundleId: 5463389
+bundleId: 5475702
 url: https://monyake.shinyapps.io/sa-covid-19-vaccine-tracker/
-when: 1642055252.22425
-lastSyncTime: 1642055252.22427
+when: 1642400001.73957
+lastSyncTime: 1642400001.73958
 asMultiple: FALSE
 asStatic: FALSE
